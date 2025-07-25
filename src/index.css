@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+  
+  .card {
+    @apply bg-white rounded-xl shadow-lg border border-gray-100;
+  }
+  
+  .input-select {
+    @apply w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-red-500 focus:ring-2 focus:ring-red-200 transition-all duration-200;
+  }
+
+  .tooltip-container {
+    @apply relative;
+  }
+
+  .tooltip {
+    @apply absolute z-10 invisible opacity-0 bg-gray-900 text-white text-xs rounded py-1 px-2 -top-8 left-0 whitespace-nowrap transition-all duration-200;
+  }
+
+  .tooltip-container:hover .tooltip {
+    @apply visible opacity-100;
+  }
+} 
