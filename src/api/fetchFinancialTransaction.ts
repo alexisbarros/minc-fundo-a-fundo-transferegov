@@ -10,6 +10,7 @@ export interface FinancialTransaction {
     doc_favorecido_gestao_financeira_mask: string;
     valor_lancamento_gestao_financeira: number;
     data_lancamento_gestao_financeira: string;
+    codigo_programa_agil_ente_solicitante_gestao_financeira: string;
 }
 
 export const fetchFinancialTransactionByUniqueId = async (uniqueId: string): Promise<FinancialTransaction[]> => {
@@ -17,7 +18,7 @@ export const fetchFinancialTransactionByUniqueId = async (uniqueId: string): Pro
     let page = 1;
     let financialTransactions: FinancialTransaction[] = [];
     while (!finished) {
-        const response = await axios.get<FinancialTransaction[]>(`${API_URL}?cnpj_ente_solicitante_gestao_financeira=eq.${uniqueId}&tipo_operacao_gestao_financeira=eq.D&limit=100&offset=${(page - 1) * 100}`);
+        const response = await axios.get<FinancialTransaction[]>(`${API_URL}/gestao_financeira_lancamentos?cnpj_ente_solicitante_gestao_financeira=eq.${uniqueId}&tipo_operacao_gestao_financeira=eq.D&limit=100&offset=${(page - 1) * 100}`);
         financialTransactions.push(...response.data);
         if (response.data.length < 100) {
             finished = true;

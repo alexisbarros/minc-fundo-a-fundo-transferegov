@@ -1,24 +1,21 @@
 import React, { useState } from 'react';
-import { FinancialTransaction } from '../api/fetchFinancialTransaction';
+import { Recipient } from '../hooks/useFinancialTransaction';
 
-interface FinancialMovementsTableProps {
-  movements: FinancialTransaction[];
+interface ProgramsTableProps {
+  recipients: Recipient[];
+  totalValue?: number;
   title?: string;
 }
 
-export const FinancialMovementsTable: React.FC<FinancialMovementsTableProps> = ({
-  movements,
-  title = "Movimentações Financeiras"
+export const ProgramsTable: React.FC<ProgramsTableProps> = ({
+  recipients,
+  totalValue = 0,
+  title = "Programa não identificado"
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
-  };
-
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('pt-BR');
   };
 
   const formatCurrency = (value: number) => {
@@ -41,7 +38,11 @@ export const FinancialMovementsTable: React.FC<FinancialMovementsTableProps> = (
               {title}
             </h3>
             <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-              {movements.length} movimentações
+              {recipients.length} beneficiários
+            </span>
+
+            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              {formatCurrency(totalValue)}
             </span>
           </div>
           <div className="flex items-center space-x-2">
@@ -74,43 +75,49 @@ export const FinancialMovementsTable: React.FC<FinancialMovementsTableProps> = (
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Data
+                    Nome do Beneficiário
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nome do Favorecido
+                    Documento do Beneficiário
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ID da Operação
+                    Identificação da transferência
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Valor
+                    Valor Transferido
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {movements
-                  .sort((a, b) => new Date(b.data_lancamento_gestao_financeira).getTime() - new Date(a.data_lancamento_gestao_financeira).getTime())
-                  .map((movement, index) => (
+                {recipients
+                  .sort((a, b) => b.transactions.reduce((acc, transaction) => acc + transaction.value, 0) - a.transactions.reduce((acc, transaction) => acc + transaction.value, 0))
+                  .map((recipient, index) => (
                     <tr
-                      key={movement.id_lancamento_gestao_financeira}
+                      key={recipient.uniqueId}
                       className={`hover:bg-gray-50 transition-colors duration-150 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                         }`}
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDate(movement.data_lancamento_gestao_financeira)}
+                        {recipient.name || "Sem identificação"}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                        <div className="tooltip-container">
-                          <span className="truncate block">
-                            {movement.nome_favorecido_gestao_financeira || "Sem identificação"}
-                          </span>
-                        </div>
+                        {recipient.uniqueId}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-600">
-                        {movement.id_lancamento_gestao_financeira}
+                        {recipient.transactions.map((transaction, idx) => (
+                          <span className="relative group" key={transaction.transactionId}>
+                            <span>
+                              {transaction.transactionId}
+                              {idx < recipient.transactions.length - 1 && ", "}
+                            </span>
+                            <span className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex px-3 py-1 rounded bg-gray-900 text-white text-xs whitespace-nowrap shadow-lg transition-opacity duration-200 opacity-90 pointer-events-none">
+                              Valor: {formatCurrency(transaction.value)}
+                            </span>
+                          </span>
+                        ))}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
-                        {formatCurrency(movement.valor_lancamento_gestao_financeira)}
+                        {formatCurrency(recipient.transactions.reduce((acc, transaction) => acc + transaction.value, 0))}
                       </td>
                     </tr>
                   ))}
@@ -122,12 +129,12 @@ export const FinancialMovementsTable: React.FC<FinancialMovementsTableProps> = (
           <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-600">
-                Total de movimentações: <span className="font-semibold">{movements.length}</span>
+                Total de beneficiários: <span className="font-semibold">{recipients.length}</span>
               </div>
               <div className="text-sm text-gray-600">
                 Valor total: <span className="font-semibold text-green-600">
                   {formatCurrency(
-                    movements.reduce((sum, movement) => sum + movement.valor_lancamento_gestao_financeira, 0)
+                    recipients.reduce((sum, recipient) => sum + recipient.transactions.reduce((acc, transaction) => acc + transaction.value, 0), 0)
                   )}
                 </span>
               </div>

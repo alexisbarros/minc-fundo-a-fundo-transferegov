@@ -1,9 +1,14 @@
-import { FinancialMovementsTable } from './components/FinancialMovementsTable';
-import { RecipientsTable } from './components/RecipientsTable';
+import { ProgramsTable } from './components/ProgramsTable';
+import { AutocompleteInput } from './components/AutocompleteInput';
 import { useFinancialTransaction } from './hooks/useFinancialTransaction';
+import { entes } from './assets/entes.ts';
 
 function App() {
-  const { financialTransactions, getFinancialTransactions, loading, error, recipients } = useFinancialTransaction();
+  const { financialTransactions, getFinancialTransactions, loading, error, programs } = useFinancialTransaction();
+
+  const handleEnteSelect = (ente) => {
+    getFinancialTransactions(ente.uniqueId);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-600 to-blue-600">
@@ -22,25 +27,18 @@ function App() {
         <div className="max-w-6xl mx-auto">
           <div className="card p-6 md:p-8 animate-fade-in">
             <div className="mb-8">
-              <label htmlFor="cnpj-input" className="block text-lg font-semibold text-gray-700 mb-3">
-                Informe o CNPJ do ente:
+              <label htmlFor="ente-autocomplete" className="block text-lg font-semibold text-gray-700 mb-3">
+                Selecione um ente:
               </label>
-              <input
-                type="text"
-                id="cnpj-input"
-                className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200"
-                placeholder="Ex: 00000000000000"
-                maxLength="14"
-                onChange={(e) => getFinancialTransactions(e.target.value)}
+              <AutocompleteInput
+                entes={entes}
+                onSelect={e => {
+                  handleEnteSelect(e);
+                }}
+                placeholder="Digite o nome ou CNPJ do ente..."
+                className="w-full"
               />
             </div>
-
-            {financialTransactions[0] &&
-              <div className="bg-gradient-to-r from-red-50 to-blue-50 border-l-4 border-red-500 rounded-lg p-6 mb-8">
-                <p className="text-lg font-semibold text-gray-800 mb-2">
-                  Nome do Ente: {financialTransactions[0].nome_ente_solicitante_gestao_financeira}
-                </p>
-              </div>}
 
             {loading && (
               <div className="text-center py-8">
@@ -71,19 +69,15 @@ function App() {
 
             {!loading && financialTransactions.length > 0 && (
               <>
-                <div className="animate-slide-up">
-                  <FinancialMovementsTable
-                    movements={financialTransactions}
-                    title="Movimentações Financeiras do Ente"
-                  />
-                </div>
-
-                <div className="animate-slide-up mt-2">
-                  <RecipientsTable
-                    recipients={recipients}
-                    title="Beneficiários das Transferências"
-                  />
-                </div>
+                {programs.length > 0 && programs.map((program) => (
+                  <div className="animate-slide-up mt-2">
+                    <ProgramsTable
+                      recipients={program.recipients}
+                      totalValue={program.value}
+                      title={program.program.name}
+                    />
+                  </div>
+                ))}
               </>
             )}
 
@@ -95,7 +89,7 @@ function App() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   <p className="text-lg font-medium text-gray-900 mb-2">Nenhuma movimentação encontrada</p>
-                  <p className="text-gray-600">Digite um CNPJ válido para visualizar as movimentações financeiras.</p>
+                  <p className="text-gray-600">Selecione um ente para visualizar as movimentações financeiras.</p>
                 </div>
               </div>
             )}

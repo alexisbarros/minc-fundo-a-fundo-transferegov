@@ -1,1 +1,1 @@
-export const API_URL = "https://api.transferegov.gestao.gov.br/fundoafundo/gestao_financeira_lancamentos";
+export const API_URL = "https://api.transferegov.gestao.gov.br/fundoafundo";
