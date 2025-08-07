@@ -77,6 +77,7 @@ export function useFinancialTransaction() {
         return {
           ...program,
           codigos_programas_agil_relacionados: programs.filter((p) => p.id_programa === program.id_programa).map((p) => p.codigo_programa_agil),
+          nomes_programas_agil_relacionados: Array.from(new Set(programs.filter((p) => p.id_programa === program.id_programa).map((p) => p.nome_programa_agil))),
         }
       })
 
@@ -126,7 +127,7 @@ export function useFinancialTransaction() {
         value: program.value || 0,
         program: {
           code: program.codigo_programa_agil,
-          name: program.nome_programa_agil,
+          name: program.nomes_programas_agil_relacionados.join(", "),
         },
         recipients: programRecipientsWithValues.sort((a, b) => b.name.localeCompare(a.name)),
       });

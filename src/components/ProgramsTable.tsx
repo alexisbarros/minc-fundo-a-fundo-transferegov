@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Recipient } from '../hooks/useFinancialTransaction';
+import { RecipientModal } from './RecipientModal';
 
 interface ProgramsTableProps {
   recipients: Recipient[];
@@ -13,9 +14,21 @@ export const ProgramsTable: React.FC<ProgramsTableProps> = ({
   title = "Programa não identificado"
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleExpanded = () => {
     setIsExpanded(!isExpanded);
+  };
+
+  const openRecipientModal = (recipient: Recipient) => {
+    setSelectedRecipient(recipient);
+    setIsModalOpen(true);
+  };
+
+  const closeRecipientModal = () => {
+    setIsModalOpen(false);
+    setSelectedRecipient(null);
   };
 
   const formatCurrency = (value: number) => {
@@ -74,20 +87,20 @@ export const ProgramsTable: React.FC<ProgramsTableProps> = ({
       {/* Conteúdo Expansível */}
       {isExpanded && (
         <div className="animate-slide-up">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div>
+            <table className="w-full table-fixed">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/3">
                     Nome do Beneficiário
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
                     Documento do Beneficiário
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
                     Identificação da transferência
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/5">
                     Valor Transferido
                   </th>
                 </tr>
@@ -101,26 +114,28 @@ export const ProgramsTable: React.FC<ProgramsTableProps> = ({
                       className={`hover:bg-gray-50 transition-colors duration-150 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
                         }`}
                     >
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {recipient.name || "Sem identificação"}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 truncate">
+                        <button
+                          onClick={() => openRecipientModal(recipient)}
+                          className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer font-medium"
+                        >
+                          {recipient.name || "Sem identificação"}
+                        </button>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
                         {recipient.uniqueId}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-600 truncate">
                         {recipient.transactions.map((transaction, idx) => (
                           <span className="relative group" key={transaction.transactionId}>
                             <span>
                               {transaction.transactionId}
                               {idx < recipient.transactions.length - 1 && ", "}
                             </span>
-                            <span className="absolute left-1/2 -translate-x-1/2 mt-2 z-10 hidden group-hover:flex px-3 py-1 rounded bg-gray-900 text-white text-xs whitespace-nowrap shadow-lg transition-opacity duration-200 opacity-90 pointer-events-none">
-                              Valor: {formatCurrency(transaction.value)}
-                            </span>
                           </span>
                         ))}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-green-600 truncate">
                         {formatCurrency(recipient.transactions.reduce((acc, transaction) => acc + transaction.value, 0))}
                       </td>
                     </tr>
@@ -145,6 +160,15 @@ export const ProgramsTable: React.FC<ProgramsTableProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal do Recipient */}
+      {isModalOpen && selectedRecipient && (
+        <RecipientModal
+          recipient={selectedRecipient}
+          isOpen={isModalOpen}
+          onClose={closeRecipientModal}
+        />
       )}
     </div>
   );
