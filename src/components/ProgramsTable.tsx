@@ -42,7 +42,11 @@ export const ProgramsTable: React.FC<ProgramsTableProps> = ({
             </span>
 
             <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-              {formatCurrency(totalValue)}
+              Recebido: {formatCurrency(totalValue)}
+            </span>
+
+            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+              Transferido: {formatCurrency(recipients.reduce((sum, recipient) => sum + recipient.transactions.reduce((acc, transaction) => acc + transaction.value, 0), 0))}
             </span>
           </div>
           <div className="flex items-center space-x-2">
