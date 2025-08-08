@@ -6,6 +6,7 @@ import { fetchActionPlan } from "../api/fetchActionPlan";
 export interface RecipientFinancialTransaction {
   value: number;
   transactionId: string;
+  date: string;
 }
 
 export interface Recipient {
@@ -117,7 +118,8 @@ export function useFinancialTransaction() {
           transactions: recipientTransactions.map((transaction) => ({
             value: transaction.valor_lancamento_gestao_financeira,
             transactionId: transaction.id_lancamento_gestao_financeira,
-          })),
+            date: transaction.data_lancamento_gestao_financeira,
+          })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
         });
       }
 

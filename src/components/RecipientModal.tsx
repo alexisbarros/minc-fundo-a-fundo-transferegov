@@ -83,6 +83,11 @@ export const RecipientModal: React.FC<RecipientModalProps> = ({ recipient, isOpe
                                                 </span>
                                             </div>
                                         </div>
+                                        <div className="flex-1">
+                                            <span className="text-sm font-mono text-gray-700">
+                                                {transaction.date ? new Date(transaction.date).toLocaleDateString('pt-BR') : ''}
+                                            </span>
+                                        </div>
                                         <div className="text-right">
                                             <div className="text-lg font-bold text-green-600">
                                                 {formatCurrency(transaction.value)}
