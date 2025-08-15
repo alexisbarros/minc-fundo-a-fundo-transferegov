@@ -1,7 +1,6 @@
 import { ProgramsTable } from './components/ProgramsTable';
-import { AutocompleteInput } from './components/AutocompleteInput';
+import { CascadingSelects } from './components/CascadingSelects';
 import { useFinancialTransaction } from './hooks/useFinancialTransaction';
-import { entes } from './assets/entes.ts';
 
 function App() {
   const { financialTransactions, getFinancialTransactions, loading, error, programs } = useFinancialTransaction();
@@ -27,16 +26,13 @@ function App() {
         <div className="max-w-6xl mx-auto">
           <div className="card p-6 md:p-8 animate-fade-in">
             <div className="mb-8">
-              <label htmlFor="ente-autocomplete" className="block text-lg font-semibold text-gray-700 mb-3">
+              <label className="block text-lg font-semibold text-gray-700 mb-3">
                 Selecione um ente:
               </label>
-              <AutocompleteInput
-                entes={entes}
+              <CascadingSelects
                 onSelect={e => {
                   handleEnteSelect(e);
                 }}
-                placeholder="Digite o nome ou CNPJ do ente..."
-                className="w-full"
               />
             </div>
 
