@@ -2,6 +2,7 @@ import { useState } from "react";
 import { FinancialTransaction, fetchFinancialTransactionByUniqueId } from "../api/fetchFinancialTransaction";
 import { fetchPrograms } from "../api/fetchProgram";
 import { fetchActionPlan } from "../api/fetchActionPlan";
+import { fetchFinancialSubTransactionByTransactionIds, FinancialSubTransaction } from "../api/fetchFinancialSubTransaction";
 
 export interface RecipientFinancialTransaction {
   value: number;
@@ -28,7 +29,6 @@ export interface ProgramWithRecipients {
 }
 
 export function useFinancialTransaction() {
-  const [financialTransactions, setFinancialTransactions] = useState<FinancialTransaction[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [programs, setPrograms] = useState<ProgramWithRecipients[]>([]);
@@ -38,8 +38,12 @@ export function useFinancialTransaction() {
     setLoading(true);
     try {
       const financialTransactions = await fetchFinancialTransactionByUniqueId(uniqueId);
-      setFinancialTransactions(financialTransactions);
-      getRecipientsByProgram(financialTransactions, uniqueId);
+      const financialSubTransactions = await fetchFinancialSubTransactionByTransactionIds(
+        financialTransactions
+          .filter((transaction) => !transaction.nome_favorecido_gestao_financeira)
+          .map((transaction) => transaction.id_lancamento_gestao_financeira)
+      );
+      getRecipientsByProgram(financialTransactions, financialSubTransactions, uniqueId);
     } catch (error) {
       setError(error as Error);
     }
@@ -95,15 +99,34 @@ export function useFinancialTransaction() {
     return uniqueProgramsByIdWithoutDuplicates;
   }
 
-  const getRecipientsByProgram = async (financialTransactions: FinancialTransaction[], uniqueId: string) => {
+  const getRecipientsByProgram = async (financialTransactions: FinancialTransaction[], financialSubTransactions: FinancialSubTransaction[], uniqueId: string) => {
     const programs = await getPrograms(financialTransactions, uniqueId);
 
     const programsWithRecipients: ProgramWithRecipients[] = [];
 
     for (const program of programs) {
-      const programTransactions = financialTransactions.filter((transaction) => program.codigos_programas_agil_relacionados.includes(transaction.codigo_programa_agil_ente_solicitante_gestao_financeira));
+      const transactions = financialTransactions.filter((transaction) => program.codigos_programas_agil_relacionados.includes(transaction.codigo_programa_agil_ente_solicitante_gestao_financeira));
+      // Get subtransactions of unknown transactions
+      const unknownTransactions = transactions.filter((transaction) => !transaction.nome_favorecido_gestao_financeira);
+      const subTransactions = financialSubTransactions.filter((transaction) => unknownTransactions.map((transaction) => transaction.id_lancamento_gestao_financeira).includes(transaction.id_lancamento_gestao_financeira));
 
-      const programRecipients = programTransactions
+      const allTransactions = [
+        ...transactions,
+        ...subTransactions
+          .map((transaction) => ({
+            id_lancamento_gestao_financeira: transaction.id_lancamento_gestao_financeira,
+            nome_favorecido_gestao_financeira: transaction.nome_beneficiario_subtransacao_gestao_financeira,
+            doc_favorecido_gestao_financeira_mask: transaction.numero_documento_beneficiario_subtransacao_gestao_financeira_ma,
+            valor_lancamento_gestao_financeira: transaction.valor_subtransacao_gestao_financeira,
+            data_lancamento_gestao_financeira: transaction.data_pagamento_subtransacao_gestao_financeira,
+            codigo_programa_agil_ente_solicitante_gestao_financeira: program.codigo_programa_agil,
+            descricao_origem_solicitacao_gestao_financeira: program.nome_programa_agil,
+            cnpj_ente_solicitante_gestao_financeira: uniqueId,
+            nome_ente_solicitante_gestao_financeira: "Não identificado",
+          })),
+      ]
+
+      const programRecipients = allTransactions
         .filter((transaction) => transaction.nome_favorecido_gestao_financeira) // remove recipients with null name
         .map((transaction) => `${transaction.nome_favorecido_gestao_financeira}_${transaction.doc_favorecido_gestao_financeira_mask}`);
 
@@ -111,7 +134,7 @@ export function useFinancialTransaction() {
 
       const programRecipientsWithValues: Recipient[] = [];
       for (const recipient of uniqueProgramRecipients) {
-        const recipientTransactions = programTransactions.filter((transaction) => `${transaction.nome_favorecido_gestao_financeira}_${transaction.doc_favorecido_gestao_financeira_mask}` === recipient);
+        const recipientTransactions = allTransactions.filter((transaction) => `${transaction.nome_favorecido_gestao_financeira}_${transaction.doc_favorecido_gestao_financeira_mask}` === recipient);
         programRecipientsWithValues.push({
           name: recipient.split("_")[0],
           uniqueId: recipient.split("_")[1],
@@ -125,7 +148,7 @@ export function useFinancialTransaction() {
 
 
       programsWithRecipients.push({
-        transactions: programTransactions,
+        transactions: allTransactions,
         value: program.value || 0,
         program: {
           code: program.codigo_programa_agil,
@@ -137,5 +160,5 @@ export function useFinancialTransaction() {
     setPrograms(programsWithRecipients);
   }
 
-  return { getFinancialTransactions, financialTransactions, getRecipientsByProgram, programs, loading, error, setError };
+  return { getFinancialTransactions, getRecipientsByProgram, programs, loading, error, setError };
 }

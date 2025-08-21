@@ -63,9 +63,6 @@ export const ProgramsTable: React.FC<ProgramsTableProps> = ({
             </span>
           </div>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">
-              {isExpanded ? 'Ocultar' : 'Expandir'}
-            </span>
             <svg
               className={`w-5 h-5 text-gray-600 transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''
                 }`}

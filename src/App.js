@@ -3,7 +3,7 @@ import { CascadingSelects } from './components/CascadingSelects';
 import { useFinancialTransaction } from './hooks/useFinancialTransaction';
 
 function App() {
-  const { financialTransactions, getFinancialTransactions, loading, error, programs } = useFinancialTransaction();
+  const { getFinancialTransactions, loading, error, programs } = useFinancialTransaction();
 
   const handleEnteSelect = (ente) => {
     getFinancialTransactions(ente.uniqueId);
@@ -63,7 +63,7 @@ function App() {
               </div>
             )}
 
-            {!loading && financialTransactions.length > 0 && (
+            {!loading && programs.length > 0 && (
               <>
                 {programs.length > 0 && programs.map((program) => (
                   <div className="animate-slide-up mt-2">
@@ -78,7 +78,7 @@ function App() {
             )}
 
             {/* Mensagem quando não há dados */}
-            {!loading && financialTransactions.length === 0 && !error && (
+            {!loading && programs.length === 0 && !error && (
               <div className="text-center py-12">
                 <div className="text-gray-500">
                   <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
