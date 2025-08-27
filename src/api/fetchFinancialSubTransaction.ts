@@ -8,6 +8,7 @@ export interface FinancialSubTransaction {
     nome_beneficiario_subtransacao_gestao_financeira: string;
     valor_subtransacao_gestao_financeira: number;
     data_pagamento_subtransacao_gestao_financeira: string;
+    id_categoria_despesa_gestao_financeira: number;
 }
 
 export const fetchFinancialSubTransactionByTransactionIds = async (transactionIds: string[]): Promise<FinancialSubTransaction[]> => {

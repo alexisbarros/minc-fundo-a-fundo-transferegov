@@ -11,6 +11,7 @@ export interface FinancialTransaction {
     valor_lancamento_gestao_financeira: number;
     data_lancamento_gestao_financeira: string;
     codigo_programa_agil_ente_solicitante_gestao_financeira: string;
+    id_categoria_despesa_gestao_financeira: number;
 }
 
 export const fetchFinancialTransactionByUniqueId = async (uniqueId: string): Promise<FinancialTransaction[]> => {

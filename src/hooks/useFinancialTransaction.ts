@@ -3,11 +3,13 @@ import { FinancialTransaction, fetchFinancialTransactionByUniqueId } from "../ap
 import { fetchPrograms } from "../api/fetchProgram";
 import { fetchActionPlan } from "../api/fetchActionPlan";
 import { fetchFinancialSubTransactionByTransactionIds, FinancialSubTransaction } from "../api/fetchFinancialSubTransaction";
+import { Category, fetchCategories } from "../api/fetchCategory";
 
 export interface RecipientFinancialTransaction {
   value: number;
   transactionId: string;
   date: string;
+  category: string;
 }
 
 export interface Recipient {
@@ -32,6 +34,7 @@ export function useFinancialTransaction() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
   const [programs, setPrograms] = useState<ProgramWithRecipients[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   const getFinancialTransactions = async (uniqueId: string) => {
     if (uniqueId.length !== 14) return;
@@ -54,6 +57,9 @@ export function useFinancialTransaction() {
     const programCodes = financialTransactions.map((transaction) => transaction.codigo_programa_agil_ente_solicitante_gestao_financeira);
     const uniquePrograms = Array.from(new Set(programCodes));
     const programs = await fetchPrograms(uniquePrograms);
+    const categories = await fetchCategories();
+    setCategories(categories);
+    
     const actionPlans = await fetchActionPlan(uniqueId);
 
     const programsWithValues = programs.map((program) => {
@@ -123,6 +129,7 @@ export function useFinancialTransaction() {
             descricao_origem_solicitacao_gestao_financeira: program.nome_programa_agil,
             cnpj_ente_solicitante_gestao_financeira: uniqueId,
             nome_ente_solicitante_gestao_financeira: "Não identificado",
+            id_categoria_despesa_gestao_financeira: transaction.id_categoria_despesa_gestao_financeira,
           })),
       ]
 
@@ -142,6 +149,7 @@ export function useFinancialTransaction() {
             value: transaction.valor_lancamento_gestao_financeira,
             transactionId: transaction.id_lancamento_gestao_financeira,
             date: transaction.data_lancamento_gestao_financeira,
+            category: getCategoryName(transaction.id_categoria_despesa_gestao_financeira),
           })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()),
         });
       }
@@ -160,5 +168,13 @@ export function useFinancialTransaction() {
     setPrograms(programsWithRecipients);
   }
 
-  return { getFinancialTransactions, getRecipientsByProgram, programs, loading, error, setError };
+  const getCategoryName = (categoryId: number) => {
+    const category = categories.find((category) => category.id_categoria_despesa_gestao_financeira === categoryId);
+    if (category) {
+      return category.nome_completo_niveis_categoria_despesa_gestao_financeira;
+    }
+    return '';
+  }
+
+  return { getFinancialTransactions, getRecipientsByProgram, programs, loading, error, setError, getCategoryName };
 }
