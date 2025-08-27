@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { entesUfCity } from '../assets/entes_uf_city';
+import entesUf from '../assets/entes_uf';
 
 interface Ente {
   state: string;
@@ -35,7 +36,7 @@ export const CascadingSelects: React.FC<CascadingSelectsProps> = ({ onSelect }) 
     if (!selectedState || !selectedCity) return [];
     const filteredEntes = entesUfCity
       .filter(ente => ente.state === selectedState && ente.city === selectedCity);
-    
+
     // Remover duplicatas baseado no uniqueId
     const uniqueEntes = filteredEntes.reduce<Ente[]>((acc, current) => {
       const x = acc.find(item => item.uniqueId === current.uniqueId);
@@ -45,7 +46,7 @@ export const CascadingSelects: React.FC<CascadingSelectsProps> = ({ onSelect }) 
         return acc;
       }
     }, []);
-    
+
     return uniqueEntes.sort((a, b) => a.name.localeCompare(b.name));
   }, [selectedState, selectedCity]);
 
@@ -122,11 +123,13 @@ export const CascadingSelects: React.FC<CascadingSelectsProps> = ({ onSelect }) 
             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           >
             <option value="">Selecione um ente</option>
-            {entes.map((ente) => (
-              <option key={ente.uniqueId} value={ente.uniqueId}>
-                {ente.name} (CNPJ: {ente.uniqueId})
-              </option>
-            ))}
+            {entes
+              .filter(ente => !(new Set(entesUf.map(e => e.uniqueId)).has(ente.uniqueId)))
+              .map((ente) => (
+                <option key={ente.uniqueId} value={ente.uniqueId}>
+                  {ente.name} (CNPJ: {ente.uniqueId})
+                </option>
+              ))}
           </select>
         </div>
       </div>
